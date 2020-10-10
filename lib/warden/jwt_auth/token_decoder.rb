@@ -15,10 +15,18 @@ module Warden
       # @return [Hash] payload decoded from the JWT
       def call(token)
         JWT.decode(token,
-                   secret,
+                   account_secret,
                    true,
                    algorithm: algorithm,
                    verify_jti: true)[0]
+      end
+
+      private
+
+      def account_secret
+        return secret if Account.current.nil?
+        
+        "#{Account.current.auth_secret}#{secret}"
       end
     end
   end
