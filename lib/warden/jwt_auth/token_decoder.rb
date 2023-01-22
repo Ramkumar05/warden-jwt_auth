@@ -20,6 +20,14 @@ module Warden
                    algorithm: algorithm,
                    verify_jti: true)[0]
       end
+
+      private
+
+      def account_secret
+        return decoding_secret if Account.current.nil?
+        
+        "#{Account.current.auth_secret}#{decoding_secret}"
+      end
     end
   end
 end
