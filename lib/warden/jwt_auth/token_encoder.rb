@@ -15,7 +15,7 @@ module Warden
       # @return [String] JWT
       def call(payload)
         payload_to_encode = merge_with_default_claims(payload)
-        JWT.encode(payload_to_encode, secret, algorithm)
+        JWT.encode(payload_to_encode, account_secret, algorithm)
       end
 
       private
@@ -26,6 +26,12 @@ module Warden
         payload['exp'] ||= now + expiration_time
         payload['jti'] ||= SecureRandom.uuid
         payload
+      end
+
+      def account_secret
+        return secret if Account.current.nil?
+        
+        "#{Account.current.auth_secret}#{secret}"
       end
     end
   end
