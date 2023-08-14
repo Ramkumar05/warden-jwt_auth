@@ -25,6 +25,7 @@ module Warden
         payload['iat'] ||= now
         payload['exp'] ||= now + expiration_time
         payload['jti'] ||= SecureRandom.uuid
+        payload['account_id'] ||= Account.current.id if Account.current
         payload
       end
 

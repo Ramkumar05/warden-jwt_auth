@@ -16,7 +16,7 @@ module Warden
       # @param token [String] a JWT
       # @return [Hash] payload decoded from the JWT
       def call(token)
-        decode(token, account_secret)
+        decode(token, account_secret(token))
       rescue JWT::VerificationError
         decode(token, rotation_secret)
       end
@@ -33,10 +33,20 @@ module Warden
 
       private
 
-      def account_secret
-        return decoding_secret if Account.current.nil?
-        
-        "#{Account.current.auth_secret}#{decoding_secret}"
+      def account_secret(token)
+        return "#{Account.current.auth_secret}#{decoding_secret}" if Account.current
+
+        return "#{fetch_account_key(token)}#{decoding_secret}"
+        # return decoding_secret if Account.current.nil?
+      end
+
+      def fetch_account_key(token)
+        _payload = JWT.decode(token, nil, verify=false)
+        account_id = _payload.map { |hash| hash['account_id'] }.first
+        return Account.find(account_id).auth_secret
+      rescue Exception => e
+        Rails.logger.error("Account data missing from JWT token. #{e.message} - #{token.inspect}")
+        return nil
       end
     end
   end
