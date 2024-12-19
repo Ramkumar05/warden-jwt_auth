@@ -145,7 +145,7 @@ config.dispatch_requests = [
 
 **Important**: You are encouraged to delimit your regular expression with `^` and `$` to avoid unintentional matches.
 
-Tokens will be returned in the `Authorization` response header, with format `Bearer #{token}`.
+Tokens will be returned in the `Authorization` response header (configurable via `config.token_header`), with format `Bearer #{token}`.
 
 ### Requests authentication
 
@@ -175,14 +175,14 @@ config.revocation_strategies = { user: RevocationStrategy }
 
 The implementation of the revocation strategy is also on your side. They just need to implement two methods: `jwt_revoked?` and `revoke_jwt`, both of them accepting as parameters the JWT payload and the user record, in this order.
 
-You can read about which [JWT recovation strategies](http://waiting-for-dev.github.io/blog/2017/01/24/jwt_revocation_strategies/) can be implement with their pros and cons.
+You can read about which [JWT recovation strategies](http://waiting-for-dev.github.io/blog/2017/01/24/jwt_revocation_strategies) can be implement with their pros and cons.
 
 ```ruby
 module RevocationStrategy
   def self.jwt_revoked?(payload, user)
     # Does something to check whether the JWT token is revoked for given user
   end
-  
+
   def self.revoke_jwt(payload, user)
     # Does something to revoke the JWT token for given user
   end
@@ -207,6 +207,17 @@ end
 ```
 
 You can remove the `rotation_secret` when you are condifent that large enough user base has the fetched the token encrypted with the new secret.
+
+### Multiple issuers
+
+When your application handles JWT tokens from multiple sources (e.g. webhooks authenticated via provider JTW tokens) you can configure this gem to use the [issuer claim](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1) to only handle tokens it has issued.
+
+```ruby
+Warden::JWTAuth.configure do |config|
+  config.secret = ENV['WARDEN_JWT_SECRET_KEY']
+  config.issuer = 'http://my-application.com'
+end
+```
 
 ## Development
 

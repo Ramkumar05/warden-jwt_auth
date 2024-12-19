@@ -30,6 +30,28 @@ describe Warden::JWTAuth::Strategy do
         expect(strategy).not_to be_valid
       end
     end
+
+    context 'when issuer claim is configured and it matches the configured issuer' do
+      it 'returns true' do
+        token = Warden::JWTAuth::TokenEncoder.new.call({ 'iss' => Warden::JWTAuth.config.issuer })
+        env = { 'HTTP_AUTHORIZATION' => "Bearer #{token}" }
+
+        strategy = described_class.new(env, :user)
+
+        expect(strategy).to be_valid
+      end
+    end
+
+    context "when issuer claim is configured and it doesn't match the configured issuer" do
+      it 'returns false' do
+        token = Warden::JWTAuth::TokenEncoder.new.call({ 'iss' => Warden::JWTAuth.config.issuer + 'aaa' })
+        env = { 'HTTP_AUTHORIZATION' => "Bearer #{token}" }
+
+        strategy = described_class.new(env, :user)
+
+        expect(strategy).not_to be_valid
+      end
+    end
   end
 
   describe '#persist?' do

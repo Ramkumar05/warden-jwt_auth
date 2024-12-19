@@ -2,6 +2,6 @@
 
 module Warden
   module JWTAuth
-    VERSION = '0.8.0'
+    VERSION = '0.10.1'
   end
 end
